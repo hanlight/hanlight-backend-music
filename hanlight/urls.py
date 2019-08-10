@@ -19,11 +19,10 @@ from django.conf import settings
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
 ]
 
 
 if settings.DEBUG:
     import debug_toolbar
-    urlpatterns +=[
-        path('__debug__', include(debug_toolbar.urls)),
-    ]
+    urlpatterns.append(path('__debug__', include(debug_toolbar.urls)))
