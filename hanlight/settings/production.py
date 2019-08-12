@@ -46,7 +46,8 @@ DEBUG = False
 ALLOWED_HOSTS = ["*"]
 
 LOCAL_APP_DIRS = [
-
+    'member',
+    'music',
 ]
 
 # Application definition
@@ -62,6 +63,8 @@ INSTALLED_APPS = [
     # dev tools
     'rest_framework',
 ]
+
+INSTALLED_APPS += LOCAL_APP_DIRS
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',

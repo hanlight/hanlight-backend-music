@@ -1,7 +1,14 @@
+beautifulsoup4==4.8.0
+certifi==2019.6.16
+chardet==3.0.4
 Django==2.1.11
 django-debug-toolbar==2.0
 djangorestframework==3.10.2
+idna==2.8
 PyMySQL==0.9.3
 python-dotenv==0.10.3
 pytz==2019.2
+requests==2.22.0
+soupsieve==1.9.2
 sqlparse==0.3.0
+urllib3==1.25.3
