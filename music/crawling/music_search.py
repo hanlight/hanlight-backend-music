@@ -24,7 +24,7 @@ class MusicSearch:
             'User-Agent': self.user_agent
         }
 
-    def get_data(self):
+    def parse_data(self):
         res = requests.get(self.url, headers=self.headers)
         json_result = json.loads(res.text)
         success = True if json_result['message'] == "성공" else False  # response status check
@@ -40,12 +40,12 @@ class MusicSearch:
         soup = BeautifulSoup(html, 'html.parser')
         album_image_url = soup.select_one('#big_img_profile')['src']
 
-        Album.objects.get_or_create(id=album_id, name=album_name, artist=artist_name, image_url=album_image_url)
+        Album.objects.get_or_create(album_id=album_id, name=album_name, artist=artist_name, image_url=album_image_url)
 
         return album_image_url  # return album_image_url
 
-    def parse_data(self):
-        success, music_data_list = self.get_data()
+    def get_data(self):
+        success, music_data_list = self.parse_data()
 
         search_result_list = []
 
