@@ -2,7 +2,7 @@ from django.db import models
 
 
 class Album(models.Model):
-    id = models.PositiveIntegerField(primary_key=True)
+    album_id = models.PositiveIntegerField()
     name = models.CharField(max_length=150)
     artist = models.CharField(max_length=100)
     image_url = models.URLField()
@@ -10,7 +10,7 @@ class Album(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return "{name} - ({artist}, {id})".format(name=self.name, artist=self.artist, id=self.id)
+        return "{name} - ({artist}, {id})".format(name=self.name, artist=self.artist, id=self.album_id)
 
 
 class Music(models.Model):
