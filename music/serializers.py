@@ -22,4 +22,10 @@ class MusicListSerializer(serializers.ModelSerializer):
 class MusicCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Music
-        fields = ('title', 'album', )
+        fields = ('title', 'album', 'token', )
+
+    def to_representation(self, instance):
+        serializer = super(MusicCreateSerializer, self).to_representation(instance)
+        serializer.pop('token')
+
+        return serializer
