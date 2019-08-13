@@ -22,4 +22,4 @@ class MusicListSerializer(serializers.ModelSerializer):
 class MusicCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Music
-        fields = ('title', 'album', )
+        fields = ('title', 'album', 'token', )
