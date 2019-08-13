@@ -1,3 +1,5 @@
+import jwt
+
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -21,8 +23,12 @@ class MusicViewSet(viewsets.GenericViewSet, mixins.ListModelMixin, mixins.Create
             return MusicListSerializer
 
     def create(self, request, *args, **kwargs):
+        token = jwt.decode(request.META.get('HTTP_ACCESSTOKEN', None), None, None)['pk']
+        request.data['token'] = token
+
         obj = Album.objects.get(album_id=request.data['album'])
         request.data['album'] = obj.id
+
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
