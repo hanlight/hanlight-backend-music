@@ -33,16 +33,22 @@ class MusicSearch:
         return success, music_data_list
 
     def get_or_save_album_image(self, album_id: int, album_name: str, artist_name: str):
-        url = f'http://www.mnet.com/album/{album_id}'
+        try:
+            album = Album.objects.get(album_id=album_id)
+        except Album.DoesNotExist:
+            url = f'http://www.mnet.com/album/{album_id}'
 
-        res = requests.get(url, headers=self.headers)
-        html = res.text
-        soup = BeautifulSoup(html, 'html.parser')
-        album_image_url = soup.select_one('#big_img_profile')['src']
+            res = requests.get(url, headers=self.headers)
+            html = res.text
+            soup = BeautifulSoup(html, 'html.parser')
+            album_image_url = soup.select_one('#big_img_profile')['src']
 
-        Album.objects.get_or_create(album_id=album_id, name=album_name, artist=artist_name, image_url=album_image_url)
+            # Todo: Refactoring for bulk_create
+            Album.objects.create(album_id=album_id, name=album_name, artist=artist_name, image_url=album_image_url)
 
-        return album_image_url  # return album_image_url
+            return album_image_url  # return album_image_url
+        else:
+            return album.image_url
 
     def get_data(self):
         success, music_data_list = self.parse_data()
