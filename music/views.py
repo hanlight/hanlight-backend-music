@@ -7,10 +7,12 @@ from .crawling.music_search import MusicSearch
 
 from .models import Music, Album
 from .serializers import MusicCreateSerializer, MusicListSerializer
+from .permissions import IsAuthenticated
 
 
 class MusicViewSet(viewsets.GenericViewSet, mixins.ListModelMixin, mixins.CreateModelMixin):
     queryset = Music.objects.all()
+    permission_classes = (IsAuthenticated, )
 
     def get_serializer_class(self):
         if self.action == 'create':
