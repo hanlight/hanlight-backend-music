@@ -46,7 +46,6 @@ DEBUG = False
 ALLOWED_HOSTS = ["*"]
 
 LOCAL_APP_DIRS = [
-    'member',
     'music',
 ]
 

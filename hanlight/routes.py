@@ -3,9 +3,9 @@ from django.urls import (
     path,
 )
 
-from music.urls import router
+from music.routes import music_router
 
 
 urlpatterns = [
-    path('music/', include(router.urls)),
+    path('music/', include(music_router.urls)),
 ]
