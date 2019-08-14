@@ -24,6 +24,23 @@ class MusicViewSet(viewsets.GenericViewSet, mixins.ListModelMixin, mixins.Create
         elif self.action == 'list':
             return MusicListSerializer
 
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(queryset, many=True)
+
+        return Response({
+            'success': True,
+            'data': {
+                'musics': serializer.data
+            }
+        }, status=status.HTTP_200_OK)
+
     def create(self, request, *args, **kwargs):
         today = timezone.now()
 
@@ -69,10 +86,10 @@ class MusicViewSet(viewsets.GenericViewSet, mixins.ListModelMixin, mixins.Create
             }
         }, status=status.HTTP_201_CREATED, headers=headers)
 
-    @action(detail=False, methods=['POST'])
+    @action(detail=False, methods=['GET'])
     def search(self, request):
-        name = request.POST.get('q', None)
-        search_type = request.POST.get('type', None)
+        name = request.GET.get('q', None)
+        search_type = request.GET.get('type', None)
 
         data_list = MusicSearch(name, search_type).get_data()
 
