@@ -1,6 +1,7 @@
 import jwt
 
 from django.utils import timezone
+from django.conf import settings
 
 from rest_framework import viewsets
 from rest_framework.decorators import action
@@ -15,7 +16,9 @@ from .exceptions import *
 
 
 class MusicViewSet(viewsets.GenericViewSet, mixins.ListModelMixin, mixins.CreateModelMixin):
-    queryset = Music.objects.all()
+    today = timezone.now()
+    queryset = Music.objects.filter(created_at__year=today.year, created_at__month=today.month,
+                                            created_at__day=today.day)
     permission_classes = (IsAuthenticated, )
 
     def get_serializer_class(self):
@@ -24,18 +27,36 @@ class MusicViewSet(viewsets.GenericViewSet, mixins.ListModelMixin, mixins.Create
         elif self.action == 'list':
             return MusicListSerializer
 
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(queryset, many=True)
+
+        return Response({
+            'success': True,
+            'data': {
+                'musics': serializer.data
+            }
+        }, status=status.HTTP_200_OK)
+
     def create(self, request, *args, **kwargs):
-        today = timezone.now()
+        # today = timezone.now()
 
         # music apply time check
-        if today.hour < 8:
-            raise MusicApplyTimeTooEarlyException
-        elif today.hour >= 12:
-            raise MusicApplyTimeTooLateException
+        if not settings.DEBUG:  # Todo: Delete when service lunching
+            if self.today.hour < 8:
+                raise MusicApplyTimeTooEarlyException
+            elif self.today.hour >= 12:
+                raise MusicApplyTimeTooLateException
 
         # Todo: write transaction logic
-        today_musics = Music.objects.filter(created_at__year=today.year, created_at__month=today.month,
-                                            created_at__day=today.day)
+        today_musics = Music.objects.filter(created_at__year=self.today.year, created_at__month=self.today.month,
+                                            created_at__day=self.today.day)
 
         # applied music counting and raise exception
         if today_musics.count() >= 7:
@@ -69,10 +90,10 @@ class MusicViewSet(viewsets.GenericViewSet, mixins.ListModelMixin, mixins.Create
             }
         }, status=status.HTTP_201_CREATED, headers=headers)
 
-    @action(detail=False, methods=['POST'])
+    @action(detail=False, methods=['GET'])
     def search(self, request):
-        name = request.POST.get('q', None)
-        search_type = request.POST.get('type', None)
+        name = request.GET.get('q', None)
+        search_type = request.GET.get('type', None)
 
         data_list = MusicSearch(name, search_type).get_data()
 

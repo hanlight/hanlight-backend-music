@@ -46,7 +46,6 @@ DEBUG = False
 ALLOWED_HOSTS = ["*"]
 
 LOCAL_APP_DIRS = [
-    'member',
     'music',
 ]
 
@@ -160,6 +159,4 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.SessionAuthentication',
         'rest_framework.authentication.BasicAuthentication',
     ),
-    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
-    'PAGE_SIZE': 10,
 }
