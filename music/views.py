@@ -1,6 +1,7 @@
 import jwt
 
 from django.utils import timezone
+from django.conf import settings
 
 from rest_framework import viewsets
 from rest_framework.decorators import action
@@ -15,7 +16,9 @@ from .exceptions import *
 
 
 class MusicViewSet(viewsets.GenericViewSet, mixins.ListModelMixin, mixins.CreateModelMixin):
-    queryset = Music.objects.all()
+    today = timezone.now()
+    queryset = Music.objects.filter(created_at__year=today.year, created_at__month=today.month,
+                                            created_at__day=today.day)
     permission_classes = (IsAuthenticated, )
 
     def get_serializer_class(self):
@@ -42,17 +45,18 @@ class MusicViewSet(viewsets.GenericViewSet, mixins.ListModelMixin, mixins.Create
         }, status=status.HTTP_200_OK)
 
     def create(self, request, *args, **kwargs):
-        today = timezone.now()
+        # today = timezone.now()
 
         # music apply time check
-        if today.hour < 8:
-            raise MusicApplyTimeTooEarlyException
-        elif today.hour >= 12:
-            raise MusicApplyTimeTooLateException
+        if not settings.DEBUG:  # Todo: Delete when service lunching
+            if self.today.hour < 8:
+                raise MusicApplyTimeTooEarlyException
+            elif self.today.hour >= 12:
+                raise MusicApplyTimeTooLateException
 
         # Todo: write transaction logic
-        today_musics = Music.objects.filter(created_at__year=today.year, created_at__month=today.month,
-                                            created_at__day=today.day)
+        today_musics = Music.objects.filter(created_at__year=self.today.year, created_at__month=self.today.month,
+                                            created_at__day=self.today.day)
 
         # applied music counting and raise exception
         if today_musics.count() >= 7:
