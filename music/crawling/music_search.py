@@ -66,11 +66,11 @@ class MusicSearch:
                                                                artist_name=artist_name)
 
                 data = {
-                    "song_name": song_name,
-                    "album_id": album_id,
-                    "album_name": album_name,
-                    "artist_name": artist_name,
-                    "album_image_url": album_image_url,
+                    "song": song_name,
+                    "album_id": int(album_id),
+                    "album": album_name,
+                    "artist": artist_name,
+                    "image_url": album_image_url,
                 }
 
                 search_result_list.append(data)
