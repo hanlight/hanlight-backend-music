@@ -9,7 +9,7 @@ from rest_framework.response import Response
 from rest_framework import mixins, status
 
 from .crawling.music_search import MusicSearch
-from .models import Music, Album
+from .models import Music, Adlbum
 from .serializers import MusicCreateSerializer, MusicListSerializer
 from .permissions import IsAuthenticated
 from .exceptions import *
@@ -45,8 +45,6 @@ class MusicViewSet(viewsets.GenericViewSet, mixins.ListModelMixin, mixins.Create
         }, status=status.HTTP_200_OK)
 
     def create(self, request, *args, **kwargs):
-        # today = timezone.now()
-
         # music apply time check
         if not settings.DEBUG:  # Todo: Delete when service lunching
             if self.today.hour < 8:

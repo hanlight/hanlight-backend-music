@@ -7,7 +7,7 @@ from rest_framework import permissions
 
 class IsAuthenticated(permissions.BasePermission):
     def has_permission(self, request, view):
-        access_token = request.META.get('HTTP_ACCESSTOKEN', None)
+        access_token = request.META.get('HTTP_AUTHORIZATION', None)
         url = settings.HANLIGHT_BASE_URL + "user"
 
         headers = {

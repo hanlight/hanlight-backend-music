@@ -61,11 +61,13 @@ INSTALLED_APPS = [
 
     # dev tools
     'rest_framework',
+    'corsheaders',
 ]
 
 INSTALLED_APPS += LOCAL_APP_DIRS
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -150,6 +152,8 @@ USE_TZ = False
 # https://docs.djangoproject.com/en/2.2/howto/static-files/
 
 STATIC_URL = '/static/'
+
+CORS_ORIGIN_ALLOW_ALL = True
 
 HANLIGHT_BASE_URL = 'https://test-backend.hanlight.kr/api/'
 
