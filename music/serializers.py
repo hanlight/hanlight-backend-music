@@ -28,4 +28,7 @@ class MusicCreateSerializer(serializers.ModelSerializer):
         serializer = super(MusicCreateSerializer, self).to_representation(instance)
         serializer.pop('token')
 
+        album = Album.objects.get(id=serializer['album'])
+        serializer['album'] = AlbumSerializer(album).data
+
         return serializer
