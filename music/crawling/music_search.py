@@ -18,7 +18,13 @@ class MusicSearch:
     def __init__(self, param: str, type: str):
         self.param = param
         self.type = type
-        self.url = f"http://search.api.mnet.com/search/{self.type}?q={self.param}"
+        self.url = f"http://search.api.mnet.com/search/song?q={self.param}&domainCd="
+        if self.type == 'artist':
+            self.url += '1'
+        elif self.type == 'song':
+            self.url += '2'
+        elif self.type == 'album':
+            self.url += '3'
         self.user_agent = random.choice(self.USER_AGENT_LIST)
         self.headers = {
             'User-Agent': self.user_agent
@@ -57,24 +63,29 @@ class MusicSearch:
 
         if success:
             for music_data in music_data_list:
-                song_name = music_data['songnm']
-                album_name = music_data['albumnm']
-                album_id = music_data['albumid']
-                artist_name = music_data['artinfo'][0]['artistnm']
-
-                album_image_url = self.get_or_save_album_image(album_id=album_id, album_name=album_name,
-                                                               artist_name=artist_name)
-
-                data = {
-                    "title": song_name,
-                    "album": {
-                        "name": album_name,
-                        "album_id": int(album_id),
-                        "artist": artist_name,
-                        "image_url": album_image_url,
-                    }
-                }
+                data = self.make_response_data(music_data)
 
                 search_result_list.append(data)
 
             return search_result_list
+
+    def make_response_data(self, music_data):
+        song_name = music_data['songnm']
+        album_name = music_data['albumnm']
+        album_id = music_data['albumid']
+        album_id = int(album_id)
+        artist_name = music_data['artinfo'][0]['artistnm']
+
+        album_image_url = self.get_or_save_album_image(album_id=album_id,
+                                                       album_name=album_name,
+                                                       artist_name=artist_name)
+
+        return {
+            "title": song_name,
+            "album": {
+                "name": album_name,
+                "album_id": int(album_id),
+                "artist": artist_name,
+                'image_url': album_image_url,
+            }
+        }
