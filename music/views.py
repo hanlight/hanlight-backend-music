@@ -9,7 +9,7 @@ from rest_framework.response import Response
 from rest_framework import mixins, status
 
 from .crawling.music_search import MusicSearch
-from .models import Music, Adlbum
+from .models import Music, Album
 from .serializers import MusicCreateSerializer, MusicListSerializer
 from .permissions import IsAuthenticated
 from .exceptions import *
@@ -64,7 +64,7 @@ class MusicViewSet(viewsets.GenericViewSet, mixins.ListModelMixin, mixins.Create
         music_title = request.data['title']
         music_album = request.data['album']
 
-        token = jwt.decode(request.META.get('HTTP_ACCESSTOKEN', None), None, None)['pk']
+        token = jwt.decode(request.META.get('HTTP_AUTHORIZATION', None), None, None)['pk']
         obj = Album.objects.get(album_id=music_album)
 
         for music in today_musics:  # checking is user already applied && is music already applied
