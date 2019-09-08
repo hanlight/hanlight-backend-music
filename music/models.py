@@ -2,7 +2,7 @@ from django.db import models
 
 
 class Album(models.Model):
-    album_id = models.PositiveIntegerField()
+    album_id = models.PositiveIntegerField(unique=True)
     name = models.CharField(max_length=150)
     artist = models.CharField(max_length=100)
     image_url = models.URLField()

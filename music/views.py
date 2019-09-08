@@ -18,7 +18,7 @@ from .exceptions import *
 class MusicViewSet(viewsets.GenericViewSet, mixins.ListModelMixin, mixins.CreateModelMixin):
     today = timezone.now()
     queryset = Music.objects.filter(created_at__year=today.year, created_at__month=today.month,
-                                            created_at__day=today.day)
+                                    created_at__day=today.day)
     permission_classes = (IsAuthenticated, )
 
     def get_serializer_class(self):
