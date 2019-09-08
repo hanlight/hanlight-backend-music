@@ -29,14 +29,16 @@ class MusicSearch:
         self.headers = {
             'User-Agent': self.user_agent
         }
+        self.music_data_list = []
 
     def parse_data(self):
         res = requests.get(self.url, headers=self.headers)
         json_result = json.loads(res.text)
         success = True if json_result['message'] == "성공" else False  # response status check
-        music_data_list = json_result['data'][:10]
+        if not json_result['data'] == None:
+            self.music_data_list = json_result['data'][:10]
 
-        return success, music_data_list
+        return success, self.music_data_list
 
     def get_or_save_album_image(self, album_id: int, album_name: str, artist_name: str):
         try:
@@ -47,7 +49,10 @@ class MusicSearch:
             res = requests.get(url, headers=self.headers)
             html = res.text
             soup = BeautifulSoup(html, 'html.parser')
-            album_image_url = soup.select_one('#big_img_profile')['src']
+            try:
+                album_image_url = soup.select_one('#big_img_profile')['src']
+            except TypeError:
+                return None
 
             # Todo: Refactoring for bulk_create
             Album.objects.create(album_id=album_id, name=album_name, artist=artist_name, image_url=album_image_url)
