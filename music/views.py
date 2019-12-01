@@ -9,6 +9,7 @@ from rest_framework.response import Response
 from rest_framework import mixins, status
 
 from .crawling.music_search import MusicSearch
+from .crawling.music_detail import MusicDetail
 from .models import Music, Album
 from .serializers import MusicCreateSerializer, MusicListSerializer
 from .permissions import IsAuthenticated
@@ -88,12 +89,30 @@ class MusicViewSet(viewsets.GenericViewSet, mixins.ListModelMixin, mixins.Create
             }
         }, status=status.HTTP_201_CREATED, headers=headers)
 
-    @action(detail=False, methods=['GET'])
+    @action(methods=['GET'], detail=False)
     def search(self, request):
         name = request.GET.get('q', None)
         search_type = request.GET.get('type', None)
+        page = request.GET.get('page', None)
 
-        data_list = MusicSearch(name, search_type).get_data()
+        data_list = MusicSearch(name, search_type, page).get_data()
+
+        return Response({
+            'success': True,
+            'data': {
+                'musics': data_list,
+            }
+        }, status=status.HTTP_200_OK)
+
+    @action(methods=['GET'], detail=False, url_path='get-detail')
+    def get_detail(self, request):
+        contents = request.GET.get('contents', None)
+        search_type = request.GET.get('type', None)
+        album_id = request.GET.get('album_id', None)
+        artist_id = request.GET.get('artist_id', None)
+        page = request.GET.get('page', None)
+
+        data_list = MusicDetail(contents, search_type, album_id=album_id, artist_id=artist_id, page=page).get_data()
 
         return Response({
             'success': True,
