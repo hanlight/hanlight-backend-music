@@ -155,7 +155,7 @@ STATIC_URL = '/static/'
 
 CORS_ORIGIN_ALLOW_ALL = True
 
-HANLIGHT_BASE_URL = 'https://test-backend.hanlight.kr/api/'
+HANLIGHT_BASE_URL = 'https://api.hanlight.kr/api/'
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (

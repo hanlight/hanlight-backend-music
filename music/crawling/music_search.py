@@ -1,6 +1,9 @@
-import requests, random, json
+import requests
+import random
+import json
 
-from music.models import Album
+from datetime import datetime
+from typing import List, Optional, AnyStr, Dict
 
 
 class MusicSearch:
@@ -14,49 +17,44 @@ class MusicSearch:
         'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_5) AppleWebKit/603.3.8 (KHTML, like Gecko) Version/10.1.2 Safari/603.3.8',
     ]
 
-    def __init__(self, keyword: str, type: str):
+    def __init__(self, keyword: str, type: str, page: Optional[int]):
         self.keyword = keyword  # 검색어
         self.type = type  # 검색 타입 ( 전체, 곡, 앨범, 아티스트 )
-        self.url = f"https://www.music-flo.com/api/search/v2/search/integration?keyword={self.keyword}"
+        self.page = 1 if not page else page
+        if self.type:
+            self.url = f"https://www.music-flo.com/api/search/v2/search/?keyword={self.keyword}&searchType={self.type}&page={self.page}&sortType=POPULAR&size=30"
+        else:
+            self.url = f"https://www.music-flo.com/api/search/v2/search/integration?keyword={self.keyword}"
         self.user_agent = random.choice(self.USER_AGENT_LIST)
         self.headers = {
             'User-Agent': self.user_agent
         }
         self.music_data_list = []
 
+    @staticmethod
+    def get_best_quality_of_image(img_list: List) -> AnyStr:
+        for img in img_list:
+            if img['size'] == 1000:
+                return img['url']
+        # Todo: If can't find image what size is 1000, return max size image
+        return None
+
     def parse_data(self):
         res = requests.get(self.url, headers=self.headers)
         json_result = json.loads(res.text)
         success = True if json_result['code'] == '2000000' else False  # response status check
 
-        if not json_result['data']['list'][1]['list']:
-            self.music_data_list = json_result['data']['list'][1]['list'][:10]
+        if success:
+            if not self.type:
+                detail = json_result['data']['list'][0]
+                track = json_result['data']['list'][1]['list']
+                album = json_result['data']['list'][2]['list']
+                artist = json_result['data']['list'][3]['list']
+                self.music_data_list = [detail, track, album, artist, ]
+            else:
+                self.music_data_list = json_result['data']['list'][0]['list']
 
         return success, self.music_data_list
-
-    def get_or_save_album_image(self, album_id: int, album_name: str, artist_name: str):
-        try:
-            album = Album.objects.get(album_id=album_id)
-        except Album.DoesNotExist:
-            url = f'https://www.music-flo.com/api/meta/v1/album/{album_id}'
-
-            res = requests.get(url, headers=self.headers)
-            json_result = json.loads(res.text)
-
-            try:
-                for img in json_result['data']['imgList']:
-                    if img['size'] == 1000:
-                        album_image_url = img['url']
-                        break
-            except TypeError:
-                return None
-
-            # Todo: Refactoring for bulk_create
-            Album.objects.create(album_id=album_id, name=album_name, artist=artist_name, image_url=album_image_url)
-
-            return album_image_url  # return album_image_url
-        else:
-            return album.image_url
 
     def get_data(self):
         success, music_data_list = self.parse_data()
@@ -64,29 +62,140 @@ class MusicSearch:
         search_result_list = []
 
         if success:
-            for music_data in music_data_list:
-                data = self.make_response_data(music_data)
-                search_result_list.append(data)
+            if not self.type:
+                detail = self.make_detail_response_data(music_data_list[0])
+                track_music_list = []
+                album_music_list = []
+                artist_music_list = []
+
+                for music_data in music_data_list[1]:
+                    data = self.make_track_response_data(music_data)
+                    track_music_list.append(data)
+
+                for music_data in music_data_list[2]:
+                    data = self.make_album_response_data(music_data)
+                    album_music_list.append(data)
+
+                for music_data in music_data_list[3]:
+                    data = self.make_artist_response_data(music_data)
+                    artist_music_list.append(data)
+
+                search_result_list = {
+                    'detail': detail,
+                    'track_list': track_music_list,
+                    'album_list': album_music_list,
+                    'artist_list': artist_music_list,
+                }
+            elif self.type == 'TRACK':
+                for music_data in music_data_list:
+                    data = self.make_track_response_data(music_data)
+
+                    search_result_list.append(data)
+            elif self.type == 'ALBUM':
+                for music_data in music_data_list:
+                    data = self.make_album_response_data(music_data)
+
+                    search_result_list.append(data)
+            elif self.type == 'ARTIST':
+                for music_data in music_data_list:
+                    data = self.make_artist_response_data(music_data)
+
+                    search_result_list.append(data)
+            else:
+                return None
 
             return search_result_list
+        else:
+            return '검색 결과가 존재하지 않습니다.'
 
-    def make_response_data(self, music_data):
-        song_name = music_data['name']
-        album_name = music_data['album']['title']
-        album_id = music_data['album']['id']
-        album_id = int(album_id)
+    def make_detail_response_data(self, music_data: dict) -> Dict:
+        data = music_data['list'][0]
+        if music_data['type'] == 'ARTIST':
+            artist_name = data['name']
+            artist_id = data['id']
+            artist_group_type = data['artistGroupTypeStr']
+            artist_image = self.get_best_quality_of_image(data['imgList'])
+
+            return {
+                'artist_name': artist_name,
+                'artist_group_type': artist_group_type,
+                'artist_id': artist_id,
+                'image_url': artist_image,
+            }
+        elif music_data['type'] == 'TRACK':
+            artist_name = data['artistList'][0]['name']
+            album_title = data['album']['title']
+            album_image = self.get_best_quality_of_image(data['album']['imgList'])
+            album_id = data['id']
+            track_title = data['name']
+
+            return {
+                'artist_name': artist_name,
+                'album_title': album_title,
+                'album_id': album_id,
+                'track_title': track_title,
+                'image_url': album_image,
+            }
+        elif music_data['type'] == 'ALBUM':
+            track_title = data['title']
+            album_id = data['id']
+            artist_name = data['artistList'][0]['name']
+            album_type = data['albumTypeStr']
+            genre_style = data['genreStyle']
+            release_date = data['releaseYmd']
+            album_image = self.get_best_quality_of_image(data['imgList'])
+
+            return {
+                'track_title': track_title,
+                'album_id': album_id,
+                'artist_name': artist_name,
+                'album_type': album_type,
+                'genre_style': genre_style,
+                'release_date': datetime.strptime(release_date, '%Y%m%d').strftime('%Y.%m.%d'),
+                'image_url': album_image,
+            }
+
+    def make_track_response_data(self, music_data: dict) -> Dict:
+        track_title = music_data['name']
         artist_name = music_data['artistList'][0]['name']
-
-        album_image_url = self.get_or_save_album_image(album_id=album_id,
-                                                       album_name=album_name,
-                                                       artist_name=artist_name)
+        album_title = music_data['album']['title']
+        album_id = music_data['album']['id']
+        album_image = self.get_best_quality_of_image(music_data['album']['imgList'])
 
         return {
-            "title": song_name,
-            "album": {
-                "name": album_name,
-                "album_id": int(album_id),
-                "artist": artist_name,
-                'image_url': album_image_url,
-            }
+            'track_title': track_title,
+            'artist_name': artist_name,
+            'album_title': album_title,
+            'album_id': album_id,
+            'image_url': album_image,
+        }
+
+    def make_album_response_data(self, music_data: dict) -> Dict:
+        album_title = music_data['title']
+        album_id = music_data['id']
+        release_date = music_data['releaseYmd']
+        artist_name = music_data['artistList'][0]['name']
+        album_image = self.get_best_quality_of_image(music_data['imgList'])
+
+        return {
+            'album_title': album_title,
+            'album_id': album_id,
+            'release_date': datetime.strptime(release_date, '%Y%m%d').strftime('%Y.%m.%d'),
+            'artist_name': artist_name,
+            'image_url': album_image,
+        }
+
+    def make_artist_response_data(self, music_data: dict) -> Dict:
+        artist_name = music_data['name']
+        artist_id = music_data['id']
+        artist_group_type = music_data['artistGroupTypeStr']
+        artist_gender = music_data['sexCdStr']
+        artist_image = self.get_best_quality_of_image(music_data['imgList'])
+
+        return {
+            'artist_name': artist_name,
+            'artist_id': artist_id,
+            'artist_group_type': artist_group_type,
+            'artist_gender': artist_gender,
+            'artist_image': artist_image,
         }

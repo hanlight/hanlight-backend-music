@@ -6,6 +6,8 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
 
+HANLIGHT_BASE_URL = 'https://test-backend.hanlight.kr/api/'
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
