@@ -47,9 +47,9 @@ class MusicSearch:
         if success:
             if not self.type:
                 detail = json_result['data']['list'][0]
-                track = json_result['data']['list'][1]['list']
-                album = json_result['data']['list'][2]['list']
-                artist = json_result['data']['list'][3]['list']
+                track = json_result['data']['list'][1]
+                album = json_result['data']['list'][2]
+                artist = json_result['data']['list'][3]
                 self.music_data_list = [detail, track, album, artist, ]
             else:
                 self.music_data_list = json_result['data']['list'][0]['list']
@@ -68,17 +68,20 @@ class MusicSearch:
                 album_music_list = []
                 artist_music_list = []
 
-                for music_data in music_data_list[1]:
-                    data = self.make_track_response_data(music_data)
-                    track_music_list.append(data)
+                if music_data_list[1]['type'] == 'TRACK':
+                    for music_data in music_data_list[1]['list']:
+                        data = self.make_track_response_data(music_data)
+                        track_music_list.append(data)
 
-                for music_data in music_data_list[2]:
-                    data = self.make_album_response_data(music_data)
-                    album_music_list.append(data)
+                if music_data_list[2]['type'] == 'ALBUM':
+                    for music_data in music_data_list[2]['list']:
+                        data = self.make_album_response_data(music_data)
+                        album_music_list.append(data)
 
-                for music_data in music_data_list[3]:
-                    data = self.make_artist_response_data(music_data)
-                    artist_music_list.append(data)
+                if music_data_list[3]['type'] == 'ARTIST':
+                    for music_data in music_data_list[3]['list']:
+                        data = self.make_artist_response_data(music_data)
+                        artist_music_list.append(data)
 
                 search_result_list = {
                     'detail': detail,
@@ -157,6 +160,7 @@ class MusicSearch:
 
     def make_track_response_data(self, music_data: dict) -> Dict:
         track_title = music_data['name']
+        artist_id = music_data['artistList'][0]['id']
         artist_name = music_data['artistList'][0]['name']
         album_title = music_data['album']['title']
         album_id = music_data['album']['id']
@@ -164,6 +168,7 @@ class MusicSearch:
 
         return {
             'track_title': track_title,
+            'artist_id': artist_id,
             'artist_name': artist_name,
             'album_title': album_title,
             'album_id': album_id,
@@ -174,6 +179,7 @@ class MusicSearch:
         album_title = music_data['title']
         album_id = music_data['id']
         release_date = music_data['releaseYmd']
+        artist_id = music_data['artistList'][0]['id']
         artist_name = music_data['artistList'][0]['name']
         album_image = self.get_best_quality_of_image(music_data['imgList'])
 
@@ -181,6 +187,7 @@ class MusicSearch:
             'album_title': album_title,
             'album_id': album_id,
             'release_date': datetime.strptime(release_date, '%Y%m%d').strftime('%Y.%m.%d'),
+            'artist_id': artist_id,
             'artist_name': artist_name,
             'image_url': album_image,
         }
