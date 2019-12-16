@@ -62,6 +62,8 @@ INSTALLED_APPS = [
     # dev tools
     'rest_framework',
     'corsheaders',
+
+    'drf_yasg',
 ]
 
 INSTALLED_APPS += LOCAL_APP_DIRS
