@@ -17,6 +17,24 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 
+from rest_framework import permissions
+
+from drf_yasg import openapi
+from drf_yasg.views import get_schema_view
+
+schema_view = get_schema_view(
+    openapi.Info(
+        title='HanlightMusic API',
+        default_version='v1',
+        description='HanlightMusic API Document',
+        terms_of_service='',
+        contact=openapi.Contact(email='mystar09070907@gmail.com'),
+        license=openapi.License(name='Hanlight License'),
+    ),
+    public=True,
+    permission_classes=(permissions.AllowAny, ),
+)
+
 
 urlpatterns = [
     path('api/', include('hanlight.routes')),
@@ -28,3 +46,8 @@ urlpatterns = [
 if settings.DEBUG:
     import debug_toolbar
     urlpatterns.append(path('__debug__', include(debug_toolbar.urls)))
+
+    urlpatterns += [
+        path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
+        path('redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
+    ]
