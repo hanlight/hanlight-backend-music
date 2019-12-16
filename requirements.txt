@@ -2,6 +2,7 @@ beautifulsoup4==4.8.0
 certifi==2019.6.16
 chardet==3.0.4
 Django==2.1.11
+drf-yasg[validation]
 django-cors-headers==3.1.0
 django-debug-toolbar==2.0
 djangorestframework==3.10.2
