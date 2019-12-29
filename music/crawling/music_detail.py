@@ -28,6 +28,7 @@ class MusicDetail:
         else:
             self.url = f"https://www.music-flo.com/api/meta/v1/{self.contents}/{self.artist_id}/{self.type}"
         if self.contents == 'artist':
+            self.artist_url = f'https://www.music-flo.com/api/meta/v1/artist/{self.artist_id}'
             if self.type == 'track':
                 self.url += f'?sortType=POPULARITY&page={self.page}&size=30&roleType=ALL'
             else:
@@ -45,6 +46,20 @@ class MusicDetail:
                 return img['url']
         # Todo: If can't find image what size is 1000, return max size image
         return None
+
+    def get_artist_info(self):
+        res = requests.get(self.artist_url, headers=self.headers)
+        json_result = json.loads(res.text)
+        success = True if json_result['code'] == '2000000' else False
+
+        if success:
+            name = json_result['data']['name']
+            artist_style = json_result['data']['artistStyle']
+            gender = json_result['data']['genderCdStr']
+
+            return name, gender, artist_style
+        else:
+            raise ValueError('success code is not 2000000')
 
     def parse_data(self):
         res = requests.get(self.url, headers=self.headers)
@@ -69,6 +84,17 @@ class MusicDetail:
                     data = self.make_album_response_data(music_data)
 
                 search_result_list.append(data)
+
+            if self.contents == 'artist' and self.type == 'album':
+                name, gender, artist_style = self.get_artist_info()
+                return {
+                    'artist_info': {
+                        'name': name,
+                        'gender': gender,
+                        'artist_style': artist_style,
+                    },
+                    'list': search_result_list
+                }
 
             return search_result_list
 
