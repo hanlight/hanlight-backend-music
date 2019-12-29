@@ -109,7 +109,12 @@ class MusicSearch:
 
             return search_result_list
         else:
-            return '검색 결과가 존재하지 않습니다.'
+            return {
+                'detail': dict(),
+                'track_list': list(),
+                'album_list': list(),
+                'artist_list': list(),
+            }
 
     def make_detail_response_data(self, music_data: dict) -> Dict:
         data = music_data['list'][0]
