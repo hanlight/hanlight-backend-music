@@ -33,6 +33,8 @@ class MusicDetail:
                 self.url += f'?sortType=POPULARITY&page={self.page}&size=30&roleType=ALL'
             else:
                 self.url += f'?sortType=RECENT&page={self.page}&size=30&roleType=RELEASE'
+        elif self.contents == 'album':
+            self.album_url = f'https://www.music-flo.com/api/meta/v1/album/{self.album_id}'
         self.user_agent = random.choice(self.USER_AGENT_LIST)
         self.headers = {
             'User-Agent': self.user_agent
@@ -61,6 +63,23 @@ class MusicDetail:
         else:
             raise ValueError('success code is not 2000000')
 
+
+    def get_album_info(self):
+        res = requests.get(self.album_url, headers=self.headers)
+        json_result = json.loads(res.text)
+        success = True if json_result['code'] == '2000000' else False
+
+        if success:
+            title = json_result['data']['title']
+            artist_name = json_result['data']['artistList'][0]['name']
+            genre_style = json_result['data']['genreStyle']
+            album_type_str = json_result['data']['albumTypeStr']
+            release_date = json_result['data']['releaseYmd']
+
+            return title, artist_name, genre_style, album_type_str, release_date
+        else:
+            raise ValueError('success code is not 2000000')
+
     def parse_data(self):
         res = requests.get(self.url, headers=self.headers)
         json_result = json.loads(res.text)
@@ -85,7 +104,7 @@ class MusicDetail:
 
                 search_result_list.append(data)
 
-            if self.contents == 'artist' and self.type == 'album':
+            if self.contents == 'artist':
                 name, gender, artist_style = self.get_artist_info()
                 return {
                     'artist_info': {
@@ -93,7 +112,19 @@ class MusicDetail:
                         'gender': gender,
                         'artist_style': artist_style,
                     },
-                    'list': search_result_list
+                    'list': search_result_list,
+                }
+            elif self.contents == 'album':
+                title, artist_name, genre_style, album_type_str, release_date = self.get_album_info()
+                return {
+                    'album_info': {
+                        'title': title,
+                        'artist_name': artist_name,
+                        'genre_style': genre_style,
+                        'album_type_str': album_type_str,
+                        'release_date': release_date,
+                    },
+                    'list': search_result_list,
                 }
 
             return search_result_list
