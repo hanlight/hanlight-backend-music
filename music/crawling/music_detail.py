@@ -58,8 +58,9 @@ class MusicDetail:
             name = json_result['data']['name']
             artist_style = json_result['data']['artistStyle']
             gender = json_result['data']['genderCdStr']
+            artist_image = self.get_best_quality_of_image(json_result['data']['imgList'])
 
-            return name, gender, artist_style
+            return name, gender, artist_style, artist_image
         else:
             raise ValueError('success code is not 2000000')
 
@@ -75,8 +76,9 @@ class MusicDetail:
             genre_style = json_result['data']['genreStyle']
             album_type_str = json_result['data']['albumTypeStr']
             release_date = json_result['data']['releaseYmd']
+            album_image = self.get_best_quality_of_image(json_result['data']['imgList'])
 
-            return title, artist_name, genre_style, album_type_str, release_date
+            return title, artist_name, genre_style, album_type_str, release_date, album_image
         else:
             raise ValueError('success code is not 2000000')
 
@@ -105,17 +107,18 @@ class MusicDetail:
                 search_result_list.append(data)
 
             if self.contents == 'artist':
-                name, gender, artist_style = self.get_artist_info()
+                name, gender, artist_style, artist_image = self.get_artist_info()
                 return {
                     'artist_info': {
                         'name': name,
                         'gender': gender,
                         'artist_style': artist_style,
+                        'image_url': artist_image,
                     },
                     'list': search_result_list,
                 }
             elif self.contents == 'album':
-                title, artist_name, genre_style, album_type_str, release_date = self.get_album_info()
+                title, artist_name, genre_style, album_type_str, release_date, album_image = self.get_album_info()
                 return {
                     'album_info': {
                         'title': title,
@@ -123,6 +126,7 @@ class MusicDetail:
                         'genre_style': genre_style,
                         'album_type_str': album_type_str,
                         'release_date': release_date,
+                        'image_url': album_image,
                     },
                     'list': search_result_list,
                 }
